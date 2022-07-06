@@ -1,52 +1,65 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class CameraController : MonoBehaviour
 {
-    [SerializeField] Transform followTarget;
+    /// <summary>
+    /// Third person camera controller
+    /// Mouse X - movement of camera around player (in a circular orbit around player)
+    /// Mouse Y - up and down movement of camera
+    /// NOTE : we are rotating vectors (muliplying quaternions with vector to achieve it)
+    /// </summary>
 
-    [SerializeField] float rotationSpeed = 2f;
-    [SerializeField] float distance = 5;
+    [SerializeField] Transform _followTarget;
+    [SerializeField] float _distanceFromTarget = 5;
+    [SerializeField] float _minVerticalAngle = -45;
+    [SerializeField] float _maxVerticalAngle = 45;
+    [SerializeField] Vector2 _framingOffset;
 
-    [SerializeField] float minVerticalAngle = -45;
-    [SerializeField] float maxVerticalAngle = 45;
-
-    [SerializeField] Vector2 framingOffset;
-
-    [SerializeField] bool invertX;
-    [SerializeField] bool invertY;
+    float _rotationX;
+    float _rotationY;
 
 
-    float rotationX;
-    float rotationY;
-
-    float invertXVal;
-    float invertYVal;
-
-    private void Start()
+    private void OnValidate()
     {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        if (_followTarget == null) return;
+        //just to make sure camera moved if we edit distance [Edit Mode - visualisation]
+        transform.position = _followTarget.position + (Vector3)_framingOffset - Vector3.forward * _distanceFromTarget;
     }
 
     private void Update()
     {
-        invertXVal =  (invertX) ? -1 : 1;
-        invertYVal =  (invertY) ? -1 : 1;
+        //Y movement of mouse is moving camera in XY plane - up down
+        _rotationX += Input.GetAxis("Mouse Y");
+        _rotationX = Mathf.Clamp(_rotationX, _minVerticalAngle, _maxVerticalAngle);
 
-        rotationX += Input.GetAxis("Camera Y") * invertYVal * rotationSpeed;
-        rotationX = Mathf.Clamp(rotationX, minVerticalAngle, maxVerticalAngle);
+        //X movement of mouse is moving camera in XZ plane - sidewise
+        _rotationY += Input.GetAxis("Mouse X");
 
-        rotationY += Input.GetAxis("Camera X") * invertXVal * rotationSpeed;
+        var targetRotation = Quaternion.Euler(_rotationX, _rotationY, 0f);
 
-        var targetRotation = Quaternion.Euler(rotationX, rotationY, 0);
+        //we add some offset to target position - for looking at head of player
+        var focusPoint = _followTarget.position + (Vector3)_framingOffset;
 
-        var focusPostion = followTarget.position + new Vector3(framingOffset.x, framingOffset.y);
-
-        transform.position = focusPostion - targetRotation * new Vector3(0, 0, distance);
+        transform.position = focusPoint - (targetRotation * new Vector3(0,0,_distanceFromTarget));
         transform.rotation = targetRotation;
     }
 
-    public Quaternion PlanarRotation => Quaternion.Euler(0, rotationY, 0);
+    private void OnDrawGizmosSelected()
+    {
+        //Gizmos.color = Color.red;
+        //Gizmos.DrawLine(transform.position, _followTarget.position);
+        //NOTE : Handles library can create problem during compilation for android therefore using #preprocessor
+#if UNITY_EDITOR
+        Handles.color = Color.red;
+        Vector3[] points = new Vector3[] { };
+        Handles.DrawDottedLines(new Vector3[] { transform.position, _followTarget.position }, 5);
+        Handles.DrawWireDisc(_followTarget.position + (Vector3)_framingOffset, transform.up, _distanceFromTarget);
+#endif
+    }
+
 }
