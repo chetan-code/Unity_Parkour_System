@@ -15,13 +15,16 @@ public class CameraController : MonoBehaviour
     /// </summary>
 
     [SerializeField] Transform _followTarget;
+    [SerializeField] float rotationSpeed = 2f;
     [SerializeField] float _distanceFromTarget = 5;
     [SerializeField] float _minVerticalAngle = -45;
     [SerializeField] float _maxVerticalAngle = 45;
     [SerializeField] Vector2 _framingOffset;
+ 
 
     float _rotationX;
     float _rotationY;
+ 
 
 
     private void OnValidate()
@@ -31,14 +34,20 @@ public class CameraController : MonoBehaviour
         transform.position = _followTarget.position + (Vector3)_framingOffset - Vector3.forward * _distanceFromTarget;
     }
 
+    private void Start()
+    {
+        //Cursor.visible = false;
+        //Cursor.lockState = CursorLockMode.Locked;
+    }
+
     private void Update()
     {
         //Y movement of mouse is moving camera in XY plane - up down
-        _rotationX += Input.GetAxis("Mouse Y");
+        _rotationX += PlayerInput.MouseY * rotationSpeed;
         _rotationX = Mathf.Clamp(_rotationX, _minVerticalAngle, _maxVerticalAngle);
 
         //X movement of mouse is moving camera in XZ plane - sidewise
-        _rotationY += Input.GetAxis("Mouse X");
+        _rotationY += PlayerInput.MouseX * rotationSpeed;
 
         var targetRotation = Quaternion.Euler(_rotationX, _rotationY, 0f);
 
@@ -51,8 +60,6 @@ public class CameraController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        //Gizmos.color = Color.red;
-        //Gizmos.DrawLine(transform.position, _followTarget.position);
         //NOTE : Handles library can create problem during compilation for android therefore using #preprocessor
 #if UNITY_EDITOR
         Handles.color = Color.red;
