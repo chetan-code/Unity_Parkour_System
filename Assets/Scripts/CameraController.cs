@@ -58,13 +58,17 @@ public class CameraController : MonoBehaviour
         transform.rotation = targetRotation;
     }
 
+    
+    public Quaternion PlanerRotation => Quaternion.Euler(0, _rotationY, 0f);
+
     private void OnDrawGizmosSelected()
     {
         //NOTE : Handles library can create problem during compilation for android therefore using #preprocessor
 #if UNITY_EDITOR
         Handles.color = Color.red;
         Vector3[] points = new Vector3[] { };
-        Handles.DrawDottedLines(new Vector3[] { transform.position, _followTarget.position }, 5);
+        Handles.DrawDottedLines(new Vector3[] { transform.position , 
+            _followTarget.position + (Vector3)_framingOffset }, 5);
         Handles.DrawWireDisc(_followTarget.position + (Vector3)_framingOffset, transform.up, _distanceFromTarget);
 #endif
     }

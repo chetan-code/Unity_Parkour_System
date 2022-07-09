@@ -4,8 +4,14 @@ using UnityEngine;
 
 public class PlayerInput : MonoBehaviour
 {
+    /// <summary>
+    /// Manager Inputs from player;
+    /// </summary>
     public static float MouseX { get; private set; }
     public static float MouseY { get; private set; }
+
+    public static float Horizontal { get; private set;}
+    public static float Vertical { get; private set; }
 
     [SerializeField] bool _invertX;
     [SerializeField] bool _invertY;
@@ -20,6 +26,9 @@ public class PlayerInput : MonoBehaviour
 
         MouseX = Input.GetAxis("Mouse X") * _invertXVal;
         MouseY = Input.GetAxis("Mouse Y")* _invertYVal;
+        Horizontal = Input.GetAxis("Horizontal");
+        Vertical = Input.GetAxis("Vertical");
+
     }
 
 }
